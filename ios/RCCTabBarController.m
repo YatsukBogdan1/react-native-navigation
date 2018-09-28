@@ -21,6 +21,13 @@
     return [self supportedControllerOrientations];
 }
 
+- (void)viewWillLayoutSubviews {
+    CGRect tabFrame = self.tabBar.frame;
+    tabFrame.size.height = 54;
+    tabFrame.origin.y = self.view.frame.size.height - 54;
+    self.tabBar.frame = tabFrame;
+}
+
 - (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController {
     id queue = [[RCCManager sharedInstance].getBridge uiManager].methodQueue;
     dispatch_async(queue, ^{
@@ -70,18 +77,30 @@
     return newImage;
 }
 
+- (UIImage *)imageFromColor:(UIColor *)color size:(CGSize) size {
+    CGRect rect = CGRectMake(0, 0, size.width/5, 54);
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
+}
+
 - (instancetype)initWithProps:(NSDictionary *)props children:(NSArray *)children globalProps:(NSDictionary*)globalProps bridge:(RCTBridge *)bridge {
     self = [super init];
     if (!self) return nil;
     
     self.delegate = self;
-    
     self.tabBar.translucent = YES; // default
     
     UIColor *buttonColor = nil;
     UIColor *selectedButtonColor = nil;
     UIColor *labelColor = nil;
+    labelColor = [UIColor colorWithRed:0.46 green:0.46 blue:0.46 alpha:1.0];
     UIColor *selectedLabelColor = nil;
+    selectedLabelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
     NSDictionary *tabsStyle = props[@"style"];
     if (tabsStyle) {
         NSString *tabBarButtonColor = tabsStyle[@"tabBarButtonColor"];
@@ -91,23 +110,25 @@
             buttonColor = color;
             selectedButtonColor = color;
         }
+        
+        self.tabBar.selectionIndicatorImage = [self imageFromColor: [UIColor colorWithRed: 6/255.0 green:163/255.7 blue:151/255.0 alpha:1.0] size: self.tabBar.frame.size];
         NSString *tabBarSelectedButtonColor = tabsStyle[@"tabBarSelectedButtonColor"];
         if (tabBarSelectedButtonColor) {
             UIColor *color = tabBarSelectedButtonColor != (id)[NSNull null] ? [RCTConvert UIColor:tabBarSelectedButtonColor] : nil;
             self.tabBar.tintColor = color;
             selectedButtonColor = color;
         }
-        NSString *tabBarLabelColor = tabsStyle[@"tabBarLabelColor"];
-        if (tabBarLabelColor) {
-            UIColor *color = tabBarLabelColor != (id)[NSNull null] ? [RCTConvert UIColor:tabBarLabelColor] : nil;
-            labelColor = color;
-        }
-        NSString *tabBarSelectedLabelColor = tabsStyle[@"tabBarSelectedLabelColor"];
-        if (tabBarLabelColor) {
-            UIColor *color = tabBarSelectedLabelColor != (id)[NSNull null] ? [RCTConvert UIColor:
-                                                                              tabBarSelectedLabelColor] : nil;
-            selectedLabelColor = color;
-        }
+//        NSString *tabBarLabelColor = tabsStyle[@"tabBarLabelColor"];
+//        if (tabBarLabelColor) {
+//            UIColor *color = tabBarLabelColor != (id)[NSNull null] ? [RCTConvert UIColor:tabBarLabelColor] : nil;
+//
+//        }
+//        NSString *tabBarSelectedLabelColor = tabsStyle[@"tabBarSelectedLabelColor"];
+//        if (tabBarLabelColor) {
+//            UIColor *color = tabBarSelectedLabelColor != (id)[NSNull null] ? [RCTConvert UIColor:
+//                                                                              tabBarSelectedLabelColor] : nil;
+//            selectedLabelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];;
+//        }
         NSString *tabBarBackgroundColor = tabsStyle[@"tabBarBackgroundColor"];
         if (tabBarBackgroundColor) {
             UIColor *color = tabBarBackgroundColor != (id)[NSNull null] ? [RCTConvert UIColor:tabBarBackgroundColor] : nil;
@@ -243,9 +264,11 @@
                 NSString *badgeColor = actionParams[@"badgeColor"];
                 UIColor *color = badgeColor != (id)[NSNull null] ? [RCTConvert UIColor:badgeColor] : nil;
                 
-                if ([viewController.tabBarItem respondsToSelector:@selector(badgeColor)]) {
-                    viewController.tabBarItem.badgeColor = color;
-                }
+                // if ([viewController.tabBarItem respondsToSelector:@selector(badgeColor)]) {
+                //     viewController.tabBarItem.badgeColor = color;
+                // }
+                // viewController.tabBarItem.badgeColor = [UIColor colorWithRed:1.00 green:0.11 blue:0.42 alpha:1.0];
+                viewController.tabBarItem.badgeColor = [UIColor colorWithRed:1.00 green:0.11 blue:0.42 alpha:1.0];
                 viewController.tabBarItem.badgeValue = [NSString stringWithFormat:@"%@", badge];
             }
         }
