@@ -171,20 +171,15 @@ RCT_EXPORT_MODULE(RCCManager);
                                    
                                    dispatch_semaphore_wait(dismiss_sema, DISPATCH_TIME_FOREVER);
                                }
-                               else {
-                                   if (rootViewController != viewController) {
-                                       [[RCCManager sharedIntance] unregisterController:viewController];
-                                   }
-                                   if (counter == allPresentedViewControllers.count && allPresentedViewControllers.count > 0)
-                                   {
-                                       [allPresentedViewControllers removeAllObjects];
-
-                                       if (resolve != nil) {
-                                           dispatch_async(dispatch_get_main_queue(), ^
-                                                          {
-                                                              resolve(nil);
-                                                          });
-                                       }
+                               else if (counter == allPresentedViewControllers.count && allPresentedViewControllers.count > 0)
+                               {
+                                   [allPresentedViewControllers removeAllObjects];
+                                   
+                                   if (resolve != nil) {
+                                       dispatch_async(dispatch_get_main_queue(), ^
+                                                      {
+                                                          resolve(nil);
+                                                      });
                                    }
                                }
                            }
@@ -385,14 +380,7 @@ RCT_EXPORT_METHOD(dismissController:(NSString*)animationType resolver:(RCTPromis
         [[RCCManager sharedIntance] unregisterController:vc];
         
         [vc dismissViewControllerAnimated:![animationType isEqualToString:@"none"]
-                               completion:^(){ 
-                                   // This fixes weird ios tabBar layout bug after presenting a modal on top of UITabBarController
-                                   UIViewController* rootVC = [UIApplication sharedApplication].delegate.window.rootViewController;
-                                   if ([rootVC isKindOfClass:[UITabBarController class]]) {
-                                       [rootVC.view setNeedsLayout];
-                                   }
-                                   resolve(nil);
-                                    }];
+                               completion:^(){ resolve(nil); }];
     } else {
         resolve(nil);
     }
